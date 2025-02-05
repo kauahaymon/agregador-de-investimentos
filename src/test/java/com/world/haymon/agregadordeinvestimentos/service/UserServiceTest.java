@@ -13,7 +13,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import javax.swing.text.html.Option;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -32,6 +34,9 @@ class UserServiceTest {
 
     @Captor
     private ArgumentCaptor<User> userArgumentcaptor;
+
+    @Captor
+    private ArgumentCaptor<UUID> uuidArgumentcaptor;
 
     @Nested
     class createUser {
@@ -81,6 +86,49 @@ class UserServiceTest {
 
             // act & assert
             assertThrows(RuntimeException.class, () -> userService.createUser(input));
+        }
+    }
+
+    @Nested
+    class getUserById {
+
+        @Test
+        @DisplayName("Should get user by id when optional is present")
+        void shouldGetUserByIdWithSuccessWhenOptionalIsPresent() {
+
+            // arrange
+            User user = new User(
+                    UUID.randomUUID(),
+                    "username",
+                    "email@email.com",
+                    "123",
+                    Instant.now(),
+                    null
+            );
+            doReturn(Optional.of(user)).when(userRepository).findById(uuidArgumentcaptor.capture());
+
+            // act
+            Optional<User> output = userService.getUserById(user.getId().toString());
+
+            // assert
+            assertTrue(output.isPresent());
+            assertEquals(user.getId(), uuidArgumentcaptor.getValue());
+        }
+        @Test
+        @DisplayName("Should get user by id when optional is empty")
+        void shouldGetUserByIdWithSuccessWhenOptionalIsEmpty() {
+
+            // arrange
+            UUID userId = UUID.randomUUID();
+
+            doReturn(Optional.empty()).when(userRepository).findById(uuidArgumentcaptor.capture());
+
+            // act
+            Optional<User> output = userService.getUserById(userId.toString());
+
+            // assert
+            assertTrue(output.isEmpty());
+            assertEquals(userId, uuidArgumentcaptor.getValue());
         }
     }
 }
