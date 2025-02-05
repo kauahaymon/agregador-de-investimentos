@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.swing.text.html.Option;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -129,6 +130,34 @@ class UserServiceTest {
             // assert
             assertTrue(output.isEmpty());
             assertEquals(userId, uuidArgumentcaptor.getValue());
+        }
+    }
+
+    @Nested 
+    class getAllUsers {
+    	
+        @Test
+        @DisplayName("Should return a list of users")
+        void shouldReturnAllUsersWithSuccess() {
+        	
+        	// arrange
+            User user = new User(
+                    UUID.randomUUID(),
+                    "username",
+                    "email@email.com",
+                    "123",
+                    Instant.now(),
+                    null
+            );
+
+            List<User> userList = List.of(user);
+            doReturn(userList).when(userRepository).findAll();
+
+            // act
+            List<User> output = userService.getAllUsers();
+
+            // assert
+            assertEquals(userList.size(), output.size());
         }
     }
 }
