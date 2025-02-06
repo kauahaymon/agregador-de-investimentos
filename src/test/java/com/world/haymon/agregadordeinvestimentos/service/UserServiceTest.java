@@ -21,8 +21,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -158,6 +157,52 @@ class UserServiceTest {
 
             // assert
             assertEquals(userList.size(), output.size());
+        }
+    }
+
+    @Nested
+    class deleteUserById {
+
+        @Test
+        @DisplayName("Should delete a user by id when exists")
+        void shouldDeleteUserByIdWhenExists() {
+
+            // arrange
+            doReturn(true)
+                    .when(userRepository)
+                    .existsById(uuidArgumentcaptor.capture());
+
+            doNothing()
+                    .when(userRepository)
+                    .deleteById(uuidArgumentcaptor.capture());
+
+            UUID userId = UUID.randomUUID();
+
+            // act
+            userService.deleteUserById(userId.toString());
+
+            // assert
+            var idList = uuidArgumentcaptor.getAllValues();
+            assertEquals(userId, idList.get(0));
+            assertEquals(userId, idList.get(1));
+        }
+
+        @Test
+        @DisplayName("Should not delete a user by id when Not exists")
+        void shouldDeleteUserByIdWhenNotExists() {
+
+            // arrange
+            doReturn(true)
+                    .when(userRepository)
+                    .existsById(uuidArgumentcaptor.capture());
+
+            UUID userId = UUID.randomUUID();
+
+            // act
+            userService.deleteUserById(userId.toString());
+
+            // assert
+            assertEquals(userId, uuidArgumentcaptor.getValue());
         }
     }
 }
