@@ -1,6 +1,7 @@
 package com.world.haymon.agregadordeinvestimentos.service;
 
 import com.world.haymon.agregadordeinvestimentos.dto.CreateUserDTO;
+import com.world.haymon.agregadordeinvestimentos.dto.UpdateUserDTO;
 import com.world.haymon.agregadordeinvestimentos.entity.User;
 import com.world.haymon.agregadordeinvestimentos.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -203,6 +204,81 @@ class UserServiceTest {
 
             // assert
             assertEquals(userId, uuidArgumentcaptor.getValue());
+        }
+    }
+
+    @Nested
+    class updateUserById {
+
+        @Test
+        @DisplayName("Should delete a user by id when username and password is filled")
+        void shouldDeleteUserByIdWhenUsernameAndPasswordIsFilled() {
+
+            // arrange
+            UpdateUserDTO updateUserDTO = new UpdateUserDTO(
+                    "newUsername",
+                    "newPassword"
+            );
+
+            User user = new User(
+                    UUID.randomUUID(),
+                    "username",
+                    "email@email.com",
+                    "123",
+                    Instant.now(),
+                    null
+            );
+            doReturn(Optional.of(user))
+                    .when(userRepository)
+                    .findById(uuidArgumentcaptor.capture());
+
+            doReturn(user)
+                    .when(userRepository)
+                    .save(userArgumentcaptor.capture());
+
+            // act
+            userService.updateUserById(user.getId().toString(), updateUserDTO);
+
+            // assert
+            assertEquals(user.getId(), uuidArgumentcaptor.getValue());
+
+            User userCaptured = userArgumentcaptor.getValue();
+
+            assertEquals(updateUserDTO.username(), userCaptured.getUsername());
+            assertEquals(updateUserDTO.password(), userCaptured.getPassword());
+
+            verify(userRepository, times(1))
+                    .findById(uuidArgumentcaptor.capture());
+            verify(userRepository, times(1))
+                    .save(user);
+        }
+
+        @Test
+        @DisplayName("Should not delete a user when NOT exists")
+        void shouldNotDeleteUserWhenNotExists() {
+
+            // arrange
+            UpdateUserDTO updateUserDTO = new UpdateUserDTO(
+                    "newUsername",
+                    "newPassword"
+            );
+
+            UUID userId = UUID.randomUUID();
+
+            doReturn(Optional.empty())
+                    .when(userRepository)
+                    .findById(uuidArgumentcaptor.capture());
+
+            // act
+            userService.updateUserById(userId.toString(), updateUserDTO);
+
+            // assert
+            assertEquals(userId, uuidArgumentcaptor.getValue());
+
+            verify(userRepository, times(1))
+                    .findById(uuidArgumentcaptor.capture());
+            verify(userRepository, times(0))
+                    .save(any());
         }
     }
 }
